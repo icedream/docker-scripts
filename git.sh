@@ -48,7 +48,12 @@ fi
 SSH_KNOWN_HOSTS="${SSH_KNOWN_HOSTS:-$(pwd)/data/etc/ssh/known_hosts}"
 if [ -e "$SSH_KNOWN_HOSTS" ]; then
     VOLUMES+=(-v "$SSH_KNOWN_HOSTS:$HOME/.ssh/known_hosts")
+else
+    if [ -e "$HOME/.ssh/known_hosts" ]; then
+        VOLUMES+=(-v "$HOME/.ssh/known_hosts:$HOME/.ssh/known_hosts")
+    fi
 fi
+
 # Only allocate tty if we detect one
 if [ -t 1 ]; then
     DOCKER_RUN_OPTIONS+=(-t)
@@ -61,3 +66,4 @@ exec docker run --rm \
     -e SSH_AUTH_SOCK=/ssh-agent \
     -w "$(pwd)" \
     "${DOCKER_RUN_OPTIONS[@]}" $COMPOSER_OPTIONS "${VOLUMES[@]}" $IMAGE "$@"
+
