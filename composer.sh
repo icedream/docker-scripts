@@ -10,8 +10,8 @@
 
 set -e
 
-VERSION="1-alpine"
-IMAGE="torvitas/composer:$VERSION"
+VERSION="${VERSION:-1-alpine}"
+IMAGE="${IMAGE:-torvitas/composer:$VERSION}"
 
 # You can set an environment file to be used using the $ENVIRONMENT_FILE
 # environment variable.
@@ -73,4 +73,5 @@ fi
 exec docker run --rm \
     -u "$(id -u):$(id -g)" \
     -e SSH_AUTH_SOCK=/ssh-agent \
-    "${DOCKER_RUN_OPTIONS[@]}" $COMPOSER_OPTIONS "${VOLUMES[@]}" -w "$(pwd)" $IMAGE "$@"
+    -w "$(pwd)" \
+    "${DOCKER_RUN_OPTIONS[@]}" $COMPOSER_OPTIONS "${VOLUMES[@]}" $IMAGE "$@"

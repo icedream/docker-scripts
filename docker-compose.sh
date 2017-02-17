@@ -14,8 +14,8 @@
 
 set -e
 
-VERSION="1.11.1"
-IMAGE="docker/compose:$VERSION"
+VERSION="${VERSION:-1.11.1}"
+IMAGE="${IMAGE:-docker/compose:$VERSION}"
 
 
 # Setup options for connecting to docker host
@@ -52,4 +52,7 @@ if [ -t 0 ]; then
     DOCKER_RUN_OPTIONS+=(-i)
 fi
 
-exec docker run --rm "${DOCKER_RUN_OPTIONS[@]}" $DOCKER_ADDR $COMPOSE_OPTIONS "${VOLUMES[@]}" -w "$(pwd)" $IMAGE "$@"
+exec docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -w "$(pwd)" \
+    "${DOCKER_RUN_OPTIONS[@]}" $DOCKER_ADDR $COMPOSE_OPTIONS "${VOLUMES[@]}" $IMAGE "$@"
