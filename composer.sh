@@ -16,7 +16,7 @@ IMAGE="${IMAGE:-torvitas/composer:$VERSION}"
 # You can set an environment file to be used using the $ENVIRONMENT_FILE
 # environment variable.
 ENVIRONMENT_FILE="${ENVIRONMENT_FILE:-$PWD/.env}"
-if [ -n "$ENVIRONMENT_FILE" ]; then
+if [ -e "$ENVIRONMENT_FILE" ]; then
     source "$ENVIRONMENT_FILE"
 fi
 

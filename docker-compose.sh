@@ -17,6 +17,12 @@ set -e
 VERSION="${VERSION:-1.11.1}"
 IMAGE="${IMAGE:-docker/compose:$VERSION}"
 
+# You can set an environment file to be used using the $ENVIRONMENT_FILE
+# environment variable.
+ENVIRONMENT_FILE=${ENVIRONMENT_FILE:-$PWD/.env}
+if [ -e "$ENVIRONMENT_FILE" ]; then
+    source $ENVIRONMENT_FILE
+fi
 
 # Setup options for connecting to docker host
 if [ -z "$DOCKER_HOST" ]; then
