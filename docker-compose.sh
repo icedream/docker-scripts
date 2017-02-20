@@ -58,8 +58,6 @@ if [ -t 0 ]; then
     DOCKER_RUN_OPTIONS+=(-i)
 fi
 
-echo $DOCKER_ADDR
-
 exec docker run --rm \
     -u "$(id -u):$(ls -Cn /var/run/docker.sock | awk '{print $4}')" \
     -w "$(pwd)" \
