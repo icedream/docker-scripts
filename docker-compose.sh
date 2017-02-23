@@ -17,48 +17,52 @@ set -e
 VERSION="${VERSION:-1.11.1}"
 IMAGE="${IMAGE:-docker/compose:$VERSION}"
 
-# You can set an environment file to be used using the $ENVIRONMENT_FILE
-# environment variable.
-ENVIRONMENT_FILE=${ENVIRONMENT_FILE:-$PWD/.env}
-if [ -e "$ENVIRONMENT_FILE" ]; then
-    source $ENVIRONMENT_FILE
-fi
+DOCKER_OPTIONS=();
 
 # Setup options for connecting to docker host
 if [ -z "$DOCKER_HOST" ]; then
     DOCKER_HOST="/var/run/docker.sock"
 fi
 if [ -S "$DOCKER_HOST" ]; then
-    DOCKER_ADDR="-v $DOCKER_HOST:$DOCKER_HOST -e DOCKER_HOST"
+    DOCKER_OPTIONS+=(-v "${DOCKER_HOST}:${DOCKER_HOST}")
+    DOCKER_OPTIONS+=(-e "DOCKER_HOST")
 else
-    DOCKER_ADDR="-e DOCKER_HOST -e DOCKER_TLS_VERIFY -e DOCKER_CERT_PATH"
+    DOCKER_OPTIONS+=(-e "DOCKER_HOST")
+    DOCKER_OPTIONS+=(-e "DOCKER_TLS_VERIFY")
+    DOCKER_OPTIONS+=(-e "DOCKER_CERT_PATH")
 fi
 
-VOLUMES=()
 # Setup volume mounts for compose config and context
-if [ "$(pwd)" != '/' ]; then
-    VOLUMES+=(-v "$(pwd):$(pwd)")
+if [ "${PWD}" != '/' ]; then
+    DOCKER_OPTIONS+=(-v "${PWD}:${PWD}")
 fi
 if [ -n "$COMPOSE_FILE" ]; then
-    compose_dir=$(dirname $COMPOSE_FILE)
+    compose_dir=$(dirname ${COMPOSE_FILE})
 fi
 if [ -n "$compose_dir" ]; then
-    VOLUMES+=(-v "$compose_dir:$compose_dir")
+    DOCKER_OPTIONS+=(-v "$compose_dir:$compose_dir")
 fi
 if [ -n "$HOME" ]; then
-    VOLUMES+=(-v "$HOME:$HOME")
+    DOCKER_OPTIONS+=(-v "${HOME}:${HOME}")
 fi
 
 # Only allocate tty if we detect one
-DOCKER_RUN_OPTIONS=()
 if [ -t 1 ]; then
-    DOCKER_RUN_OPTIONS+=(-t)
+    DOCKER_OPTIONS+=(-t)
 fi
 if [ -t 0 ]; then
-    DOCKER_RUN_OPTIONS+=(-i)
+    DOCKER_OPTIONS+=(-i)
 fi
 
+GROUPS=(id -G)
+printf -v GROUP_ADD -- "--group-add %s " "${GROUPS[@]}"
+
+unset DOCKER_HOST
+unset DOCKER_TLS_VERIFY
+unset DOCKER_CERT_PATH
+
 exec docker run --rm \
-    -u "$(id -u):$(id -g)" \
-    -w "$(pwd)" \
-    "${DOCKER_RUN_OPTIONS[@]}" $DOCKER_ADDR $COMPOSE_OPTIONS "${VOLUMES[@]}" $IMAGE "$@"
+    -u "$(id -u):$(ls -Cn /var/run/docker.sock | awk '{print $4}')" \
+    ${GROUP_ADD} \
+    -w "${PWD}" \
+    "${DOCKER_OPTIONS[@]}" ${COMPOSE_OPTIONS} ${IMAGE} "$@"
