@@ -40,6 +40,9 @@ else
     -e "DOCKER_TLS_VERIFY=${DOCKER_TLS_VERIFY}"
     -e "DOCKER_CERT_PATH=${DOCKER_CERT_PATH}"
   )
+  unset DOCKER_HOST
+  unset DOCKER_TLS_VERIFY
+  unset DOCKER_CERT_PATH
 fi
 
 # Mount directory of compose project file if any given.
@@ -47,10 +50,6 @@ if [ -n "${COMPOSE_FILE}" ] && [ -f "${COMPOSE_FILE}" ]; then
   compose_dir=$(dirname "${COMPOSE_FILE}")
   DOCKER_OPTIONS+=(-v "${compose_dir}:${compose_dir}")
 fi
-
-unset DOCKER_HOST
-unset DOCKER_TLS_VERIFY
-unset DOCKER_CERT_PATH
 
 # shellcheck source=./dockerrun.sh
 . "${SCRIPT_DIR}/dockerrun.sh" "${IMAGE}" "$@"
