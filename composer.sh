@@ -1,11 +1,17 @@
 #!/bin/bash
 #
-# Run composer in a container
+# Runs composer in a container.
 #
-# This script will attempt to mirror the host paths by using volumes for the
-# following paths:
-#   * $(pwd)
-#   * $(dirname $COMPOSE_FILE) if it's set
+# Additional to all inputs that dockerrun.sh accepts, following environment
+# variables are available:
+#
+# - COMPOSER_CACHE: Defaults to $PWD/tmp/composer, directory where Composer will
+#   save cached files to.
+# - COMPOSER_FILE: Path to composer configuration, its directory will be mounted
+#   into the container. If left empty, no additional mount will occur.
+# - ENVIRONMENT_FILE: Path to a shell script to source for environment values.
+#   Note that variables sourced from this file won't be passed into the Docker
+#   container automatically, use DOCKER_OPTIONS for this.
 #
 
 set -e

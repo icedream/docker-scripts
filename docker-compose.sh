@@ -1,15 +1,9 @@
 #!/bin/bash
 #
-# Run docker-compose in a container
+# Runs docker-compose in a container.
 #
-# This script will attempt to mirror the host paths by using volumes for the
-# following paths:
-#   * $(pwd)
-#   * $(dirname $COMPOSE_FILE) if it's set
-#   * $HOME if it's set
-#
-# You can add additional volumes (or any docker run options) using
-# the $COMPOSE_OPTIONS environment variable.
+# Accepts all environment variables that dockerrun.sh accepts as well. Passes
+# through all environment variables that docker-compose supports.
 #
 
 set -e
@@ -35,7 +29,7 @@ DOCKER_OPTIONS+=(
 DOCKER_HOST="${DOCKER_HOST:-unix:///var/run/docker.sock}"
 docker_host_file="${DOCKER_HOST#unix://}"
 if [ -S "${docker_host_file}" ]; then
-  # Local Docker host
+  # Local Docker host.
   DOCKER_OPTIONS+=(
     -v "${docker_host_file}:${docker_host_file}"
     -e DOCKER_HOST
@@ -43,7 +37,9 @@ if [ -S "${docker_host_file}" ]; then
     -e DOCKER_CERT_PATH
   )
 else
-  # Remote Docker host
+  # Remote Docker host.
+  # Prevent docker-compose from being run on remote, instead let docker-compose
+  # communicate with remote, running locally.
   DOCKER_OPTIONS+=(
     -e "DOCKER_HOST=${DOCKER_HOST}"
     -e "DOCKER_TLS_VERIFY=${DOCKER_TLS_VERIFY}"

@@ -1,12 +1,40 @@
 #!/bin/bash
 #
-# Run composer in a container
+# Runs git in a container.
 #
-# This script will attempt to mirror the host paths by using volumes for the
-# following paths:
-#   * $(pwd)
-#   * $(dirname $COMPOSE_FILE) if it's set
+# Accepts all environment variables that dockerrun.sh accepts as well. Passes
+# through the following environment variables for git:
 #
+# - GIT_ALTERNATE_OBJECT_DIRECTORIES
+# - GIT_AUTHOR_DATE
+# - GIT_AUTHOR_EMAIL
+# - GIT_AUTHOR_NAME
+# - GIT_COMMITTER_DATE
+# - GIT_COMMITTER_EMAIL
+# - GIT_COMMITTER_NAME
+# - GIT_CONFIG_NOSYSTEM
+# - GIT_DIFF_OPTS
+# - GIT_DIR
+# - GIT_GLOB_PATHSPECS
+# - GIT_HTTP_USER_AGENT
+# - GIT_ICASE_PATHSPECS
+# - GIT_INDEX_FILE
+# - GIT_LITERAL_PATHSPECS
+# - GIT_MERGE_VERBOSITY
+# - GIT_NOGLOB_PATHSPECS
+# - GIT_OBJECT_DIRECTORY
+# - GIT_SSL_NO_VERIFY
+# - GIT_WORK_TREE
+#
+# Accepts the following additional environment variables:
+#
+# - ENVIRONMENT_FILE: Path to a shell script to source for environment values.
+#   Note that variables sourced from this file won't be passed into the Docker
+#   container automatically, use DOCKER_OPTIONS for this.
+#
+
+# For a full list of environment variables that Git supports, check
+# https://git-scm.com/book/tr/v2/Git-Internals-Environment-Variables.
 
 set -e
 

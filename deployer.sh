@@ -1,12 +1,17 @@
 #!/bin/bash
 #
-# Run deployer in a container
+# Runs deployer in a container.
 #
-# This script will attempt to mirror the host paths by using volumes for the
-# following paths:
-#   * $(pwd)
-#   * $(dirname $COMPOSE_FILE) if it's set
-#   * $HOME if it's set
+# Accepts all environment variables that dockerrun.sh accepts as well.
+# Additionally, the following environment variables are accepted:
+#
+# - DEPLOYER_FILE: Path to deployer configuration, its directory will be mounted
+#   into the container. If left empty, no additional mount will occur.
+# - ENVIRONMENT_FILE: Path to a shell script to source for environment values.
+#   Note that variables sourced from this file won't be passed into the Docker
+#   container automatically, use DOCKER_OPTIONS for this.
+#
+# Also mounts current directory in /src.
 #
 
 set -e
