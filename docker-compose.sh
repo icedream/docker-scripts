@@ -19,7 +19,16 @@ SCRIPT_DIR="${BASH_SOURCE%/*}"
 VERSION="${VERSION:-1.11.1}"
 IMAGE="${IMAGE:-docker/compose:$VERSION}"
 
-DOCKER_OPTIONS=();
+# Pass through environment variables that docker-compose supports, see
+# https://docs.docker.com/compose/reference/envvars/ for the full list.
+DOCKER_OPTIONS+=(
+  -e COMPOSE_PROJECT_NAME
+  -e COMPOSE_FILE
+  -e COMPOSE_API_VERSION
+  -e COMPOSE_HTTP_TIMEOUT
+  -e COMPOSE_TLS_VERSION
+  -e COMPOSE_CONVERT_WINDOWS_PATHS
+)
 
 # Setup options for connecting to docker host
 # DOCKER_HOST is not just a path to the socket, but may be prefixed with "unix://".
