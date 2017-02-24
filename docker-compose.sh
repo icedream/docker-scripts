@@ -22,13 +22,13 @@ IMAGE="${IMAGE:-docker/compose:$VERSION}"
 DOCKER_OPTIONS=();
 
 # Setup options for connecting to docker host
-if [ -z "$DOCKER_HOST" ]; then
-  DOCKER_HOST="/var/run/docker.sock"
-fi
-if [ -S "$DOCKER_HOST" ]; then
+# DOCKER_HOST is not just a path to the socket, but may be prefixed with "unix://".
+DOCKER_HOST="${DOCKER_HOST:-unix:///var/run/docker.sock}"
+docker_host_file="${DOCKER_HOST#unix://}"
+if [ -S "${docker_host_file}" ]; then
   # Local Docker host
   DOCKER_OPTIONS+=(
-    -v "${DOCKER_HOST}:${DOCKER_HOST}"
+    -v "${docker_host_file}:${docker_host_file}"
     -e DOCKER_HOST
     -e DOCKER_TLS_VERIFY
     -e DOCKER_CERT_PATH
