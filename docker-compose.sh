@@ -54,6 +54,11 @@ else
   unset DOCKER_CERT_PATH
 fi
 
+# Mount certificate path if any given.
+if [ -n "${DOCKER_CERT_PATH}" ] && [ -d "${DOCKER_CERT_PATH}" ]; then
+  DOCKER_OPTIONS+=(-v "${DOCKER_CERT_PATH}:${DOCKER_CERT_PATH}")
+fi
+
 # Mount directory of compose project file if any given.
 if [ -n "${COMPOSE_FILE}" ] && [ -f "${COMPOSE_FILE}" ]; then
   compose_dir=$(dirname "${COMPOSE_FILE}")
