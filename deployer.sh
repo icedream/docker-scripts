@@ -11,6 +11,8 @@
 
 set -e
 
+SCRIPT_DIR="${BASH_SOURCE%/*}"
+
 VERSION="${VERSION:-4.0.0-php5-alpine}"
 IMAGE="${IMAGE:-torvitas/deployer:$VERSION}"
 
@@ -18,63 +20,23 @@ IMAGE="${IMAGE:-torvitas/deployer:$VERSION}"
 # environment variable.
 ENVIRONMENT_FILE=${ENVIRONMENT_FILE:-$PWD/.env}
 if [ -e "$ENVIRONMENT_FILE" ]; then
-    source $ENVIRONMENT_FILE
+  source $ENVIRONMENT_FILE
 fi
 
 # You can add additional volumes (or any docker run options) using
 # the $DEPLOYER_OPTIONS environment variable.
-DEPLOYER_OPTIONS=${DEPLOYER_OPTIONS:-}
+DOCKER_OPTIONS+=("${DEPLOYER_OPTIONS[@]}")
 
-# if we can't find an agent, start one, and restart the script.
-if [ -z "$SSH_AUTH_SOCK" ] ; then
-    eval $(ssh-agent -s)
-fi
+# Additional mounts
+DOCKER_OPTIONS+=(-v "${PWD}:/src")
 
-VOLUMES=()
-# Setup volume mounts for composer config, context and ssh keys
-if [ "$(pwd)" != '/' ]; then
-    VOLUMES+=(-v "$(pwd):$(pwd)")
+# Mount directory of deployer configuration
+if [ -n "${DEPLOYER_FILE}" ]; then
+  deployer_dir=$(dirname "${DEPLOYER_FILE}")
 fi
-VOLUMES+=(-v "$(readlink -f $SSH_AUTH_SOCK):/ssh-agent")
-if [ -e "/etc/shadow" ]; then
-    VOLUMES+=(-v "/etc/passwd:/etc/passwd:ro")
-fi
-if [ -e "/etc/passwd" ]; then
-    VOLUMES+=(-v "/etc/shadow:/etc/shadow:ro")
-fi
-if [ -e "/etc/group" ]; then
-    VOLUMES+=(-v "/etc/group:/etc/group:ro")
+if [ -n "${deployer_dir}" ]; then
+  DOCKER_OPTIONS+=(-v "${deployer_dir}:${deployer_dir}")
 fi
 
-# Setup volume mounts for deployer config, context and ssh keys
-if [ "$(pwd)" != '/' ]; then
-    VOLUMES+=(-v "$(pwd):$(pwd)")
-    VOLUMES+=(-v "$(pwd):/src")
-fi
-if [ -n "$DEPLOYER_FILE" ]; then
-    deployer_dir=$(dirname $DEPLOYER_FILE)
-fi
-if [ -n "$deployer_dir" ]; then
-    VOLUMES+=(-v "$(readlink -f $deployer_dir):$deployer_dir")
-fi
-SSH_KNOWN_HOSTS="${SSH_KNOWN_HOSTS:-$(pwd)/data/etc/ssh/known_hosts}"
-if [ -e "$SSH_KNOWN_HOSTS" ]; then
-    VOLUMES+=(-v "$SSH_KNOWN_HOSTS:$HOME/.ssh/known_hosts")
-else
-    if [ -e "$HOME/.ssh/known_hosts" ]; then
-        VOLUMES+=(-v "$HOME/.ssh/known_hosts:$HOME/.ssh/known_hosts")
-    fi
-fi
-# Only allocate tty if we detect one
-if [ -t 1 ]; then
-    DOCKER_RUN_OPTIONS+=(-t)
-fi
-if [ -t 0 ]; then
-    DOCKER_RUN_OPTIONS+=(-i)
-fi
-
-exec docker run --rm \
-    -u "$(id -u):$(id -g)" \
-    -e SSH_AUTH_SOCK=/ssh-agent \
-    -w "$(pwd)" \
-    "${DOCKER_RUN_OPTIONS[@]}" $DEPLOYER_OPTIONS "${VOLUMES[@]}" $IMAGE "$@"
+# shellcheck source=./dockerrun.sh
+. "${SCRIPT_DIR}/dockerrun.sh" "${IMAGE}" "$@"

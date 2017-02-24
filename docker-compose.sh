@@ -14,6 +14,8 @@
 
 set -e
 
+SCRIPT_DIR="${BASH_SOURCE%/*}"
+
 VERSION="${VERSION:-1.11.1}"
 IMAGE="${IMAGE:-docker/compose:$VERSION}"
 
@@ -21,48 +23,34 @@ DOCKER_OPTIONS=();
 
 # Setup options for connecting to docker host
 if [ -z "$DOCKER_HOST" ]; then
-    DOCKER_HOST="/var/run/docker.sock"
+  DOCKER_HOST="/var/run/docker.sock"
 fi
 if [ -S "$DOCKER_HOST" ]; then
-    DOCKER_OPTIONS+=(-v "${DOCKER_HOST}:${DOCKER_HOST}")
-    DOCKER_OPTIONS+=(-e "DOCKER_HOST")
+  # Local Docker host
+  DOCKER_OPTIONS+=(
+    -v "${DOCKER_HOST}:${DOCKER_HOST}"
+    -e DOCKER_HOST
+    -e DOCKER_TLS_VERIFY
+    -e DOCKER_CERT_PATH
+  )
 else
-    DOCKER_OPTIONS+=(-e "DOCKER_HOST")
-    DOCKER_OPTIONS+=(-e "DOCKER_TLS_VERIFY")
-    DOCKER_OPTIONS+=(-e "DOCKER_CERT_PATH")
+  # Remote Docker host
+  DOCKER_OPTIONS+=(
+    -e "DOCKER_HOST=${DOCKER_HOST}"
+    -e "DOCKER_TLS_VERIFY=${DOCKER_TLS_VERIFY}"
+    -e "DOCKER_CERT_PATH=${DOCKER_CERT_PATH}"
+  )
 fi
 
-# Setup volume mounts for compose config and context
-if [ "${PWD}" != '/' ]; then
-    DOCKER_OPTIONS+=(-v "${PWD}:${PWD}")
+# Mount directory of compose project file if any given.
+if [ -n "${COMPOSE_FILE}" ] && [ -f "${COMPOSE_FILE}" ]; then
+  compose_dir=$(dirname "${COMPOSE_FILE}")
+  DOCKER_OPTIONS+=(-v "${compose_dir}:${compose_dir}")
 fi
-if [ -n "$COMPOSE_FILE" ]; then
-    compose_dir=$(dirname ${COMPOSE_FILE})
-fi
-if [ -n "$compose_dir" ]; then
-    DOCKER_OPTIONS+=(-v "$compose_dir:$compose_dir")
-fi
-if [ -n "$HOME" ]; then
-    DOCKER_OPTIONS+=(-v "${HOME}:${HOME}")
-fi
-
-# Only allocate tty if we detect one
-if [ -t 1 ]; then
-    DOCKER_OPTIONS+=(-t)
-fi
-if [ -t 0 ]; then
-    DOCKER_OPTIONS+=(-i)
-fi
-
-GROUPS=(id -G)
-printf -v GROUP_ADD -- "--group-add %s " "${GROUPS[@]}"
 
 unset DOCKER_HOST
 unset DOCKER_TLS_VERIFY
 unset DOCKER_CERT_PATH
 
-exec docker run --rm \
-    -u "$(id -u):$(ls -Cn /var/run/docker.sock | awk '{print $4}')" \
-    ${GROUP_ADD} \
-    -w "${PWD}" \
-    "${DOCKER_OPTIONS[@]}" ${COMPOSE_OPTIONS} ${IMAGE} "$@"
+# shellcheck source=./dockerrun.sh
+. "${SCRIPT_DIR}/dockerrun.sh" "${IMAGE}" "$@"
