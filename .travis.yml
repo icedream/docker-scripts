@@ -11,7 +11,7 @@ os:
 
 script:
     - export PATH="$PATH:$PWD"; cd .travis; ./test-readlink.sh; cd ..
-    - ./dockerrun.sh hello-world.sh
+    - ./dockerrun.sh hello-world
     - ./composer.sh --version
     - ./deployer.sh --version
     - ./docker-compose.sh --version
