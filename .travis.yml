@@ -2,9 +2,21 @@ sudo: required
 
 language: c
 
+services:
+    - docker
+
 os:
     - linux
     - osx
 
 script:
     - export PATH="$PATH:$PWD"; cd .travis; ./test-readlink.sh
+    - ./dockerrun.sh hello-world.sh
+    - ./composer.sh --version
+    - ./deployer.sh --version
+    - ./docker-compose.sh --version
+    - ./git.sh --version
+    - ./lualatex.sh --version
+    - ./pandoc.sh --version
+    - ./pdftex.sh --version
+    - ./xelatex.sh --version
