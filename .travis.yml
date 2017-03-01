@@ -1,0 +1,10 @@
+sudo: required
+
+language: c
+
+os:
+    - linux
+    - osx
+
+script:
+    - export PATH="$PATH:$PWD"; cd .travis; ./test-readlink.sh
