@@ -13,10 +13,12 @@
 #   set to anything non-zero.
 #
 
+SCRIPT_DIR="${BASH_SOURCE%/*}"
+
 # Generates a volume definition that maps the volume into the container at the
 # exact same path as the host.
 mirror_volume() {
-  echo -n "$(readlink -f "$1"):$1"
+  echo -n "$("${SCRIPT_DIR}/readlink.sh" -f "$1"):$1"
   if [ ! -z "$2" ]; then
     echo -n ":$2"
   fi
@@ -40,7 +42,7 @@ DOCKER_OPTIONS+=(
 # @TODO - Find a more consistent solution if possible.
 if [ "${PWD}" = "/" ]; then
   DOCKER_OPTIONS+=(
-    -v "$(readlink -f "${PWD}"):/host/${PWD}"
+    -v "$("${SCRIPT_DIR}/readlink.sh" -f "${PWD}"):/host/${PWD}"
     -w "/host/${PWD}"
   )
 else

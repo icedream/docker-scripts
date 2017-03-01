@@ -35,7 +35,7 @@ DOCKER_OPTIONS+=("${COMPOSER_OPTIONS[@]}")
 COMPOSER_CACHE="${COMPOSER_CACHE:-$PWD/tmp/composer}"
 if [ -n "${COMPOSER_CACHE}" ]; then
   mkdir -p "${COMPOSER_CACHE}"
-  DOCKER_OPTIONS+=(-v "$(readlink -f "${COMPOSER_CACHE}"):/composer/cache")
+  DOCKER_OPTIONS+=(-v "$("${SCRIPT_DIR}/readlink.sh" -f "${COMPOSER_CACHE}"):/composer/cache")
 fi
 
 # Mount directory of deployer configuration
@@ -43,7 +43,7 @@ if [ -n "${COMPOSER_FILE}" ]; then
   composer_dir=$(dirname "${COMPOSER_FILE}")
 fi
 if [ -n "${composer_dir}" ] && [ -d "${composer_dir}" ]; then
-  DOCKER_OPTIONS+=(-v "$(readlink -f "${composer_dir}"):${composer_dir}")
+  DOCKER_OPTIONS+=(-v "$("${SCRIPT_DIR}/readlink.sh" -f "${composer_dir}"):${composer_dir}")
 fi
 
 # shellcheck source=./dockerrun.sh
