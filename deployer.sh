@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 #
 # Runs deployer in a container.
 #
@@ -13,8 +13,6 @@
 #
 # Also mounts current directory in /src.
 #
-
-set -e
 
 SCRIPT_DIR="${BASH_SOURCE%/*}"
 

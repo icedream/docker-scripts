@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 #
 # Runs composer in a container.
 #
@@ -13,8 +13,6 @@
 #   Note that variables sourced from this file won't be passed into the Docker
 #   container automatically, use DOCKER_OPTIONS for this.
 #
-
-set -e
 
 SCRIPT_DIR="${BASH_SOURCE%/*}"
 

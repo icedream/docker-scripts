@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 #
 # Runs git in a container.
 #
@@ -35,8 +35,6 @@
 
 # For a full list of environment variables that Git supports, check
 # https://git-scm.com/book/tr/v2/Git-Internals-Environment-Variables.
-
-set -e
 
 SCRIPT_DIR="${BASH_SOURCE%/*}"
 

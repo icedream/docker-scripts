@@ -1,12 +1,10 @@
-#!/bin/bash
+#!/bin/bash -e
 #
 # Runs docker-compose in a container.
 #
 # Accepts all environment variables that dockerrun.sh accepts as well. Passes
 # through all environment variables that docker-compose supports.
 #
-
-set -e
 
 SCRIPT_DIR="${BASH_SOURCE%/*}"
 
