@@ -82,6 +82,7 @@ fi
 # Pass through SSH agent, if we can't find an agent, start one.
 if [ -z "${SSH_AUTH_SOCK}" ] || [ ! -e "${SSH_AUTH_SOCK}" ]; then
   eval "$(ssh-agent -s)"
+  trap 'eval "$(ssh-agent -k)"' EXIT
 fi
 DOCKER_OPTIONS+=(
   -e SSH_AUTH_SOCK
@@ -109,7 +110,9 @@ if [ -n "${SCRIPT_DEBUG}" ]; then
     "$@"
 fi
 
-exec docker run --rm \
+# Do not use "exec" to allow exit traps to run
+docker run --rm \
   "${DOCKER_OPTIONS[@]}" \
   "${IMAGE}" \
   "$@"
+exit "$?"
