@@ -15,6 +15,11 @@
 
 SCRIPT_DIR="${BASH_SOURCE%/*}"
 
+# Possible values for $OS:
+# - Linux (Debian, Ubuntu, Fedora, Arch Linux, Alpine, ...)
+# - Darwin (macOS/Mac OS X)
+OS="$(uname)"
+
 # Generates a volume definition that maps the volume into the container at the
 # exact same path as the host.
 mirror_volume() {
@@ -29,14 +34,22 @@ IMAGE="$1"
 shift 1
 
 # Mirror user and group
-DOCKER_OPTIONS+=(
-  -u "${UID}:$(id -g)"
-  -v "$(mirror_volume "${HOME}")"
-  -v "$(mirror_volume /etc/group ro)"
-  -v "$(mirror_volume /etc/gshadow ro)"
-  -v "$(mirror_volume /etc/passwd ro)"
-  -v "$(mirror_volume /etc/shadow ro)"
-)
+# (only supported for Linux, others don't use /etc/passwd-ish routines)
+if [ "$OS" = "Linux" ]; then
+  DOCKER_OPTIONS+=(
+    -u "${UID}:$(id -g)"
+    -v "$(mirror_volume "${HOME}")"
+    -v "$(mirror_volume /etc/group ro)"
+    -v "$(mirror_volume /etc/gshadow ro)"
+    -v "$(mirror_volume /etc/passwd ro)"
+    -v "$(mirror_volume /etc/shadow ro)"
+  )
+
+  # Append supplementary groups to DOCKER_OPTIONS
+  for val in $(id -G); do
+    DOCKER_OPTIONS+=(--group-add "${val}")
+  done
+fi
 
 # Pass through current working directory.
 # @TODO - Find a more consistent solution if possible.
@@ -74,11 +87,6 @@ fi
 if [ -t 0 ]; then
   DOCKER_OPTIONS+=(-i)
 fi
-
-# Append supplementary groups to DOCKER_OPTIONS
-for val in $(id -G); do
-  DOCKER_OPTIONS+=(--group-add "${val}")
-done
 
 if [ -z "${NO_PULL}" ]; then
   docker pull \
