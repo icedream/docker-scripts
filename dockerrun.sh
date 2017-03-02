@@ -35,7 +35,7 @@ shift 1
 
 # Mirror user and group
 # (only supported for Linux, others don't use /etc/passwd-ish routines)
-if [ "$OS" = "Linux" ]; then
+if [ "$OS" = "Linux" ] || [ -n "${FORCE_USER_PERMS}" ]; then
   DOCKER_OPTIONS+=(
     -u "${UID}:$(id -g)"
     -v "$(mirror_volume "${HOME}")"
