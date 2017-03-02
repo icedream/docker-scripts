@@ -39,11 +39,19 @@ if [ "$OS" = "Linux" ]; then
   DOCKER_OPTIONS+=(
     -u "${UID}:$(id -g)"
     -v "$(mirror_volume "${HOME}")"
-    -v "$(mirror_volume /etc/group ro)"
-    -v "$(mirror_volume /etc/gshadow ro)"
-    -v "$(mirror_volume /etc/passwd ro)"
-    -v "$(mirror_volume /etc/shadow ro)"
   )
+  if [ -f "/etc/group" ]; then
+    DOCKER_OPTIONS+=(-v "$(mirror_volume /etc/group ro)")
+  fi
+  if [ -f "/etc/gshadow" ]; then
+    DOCKER_OPTIONS+=(-v "$(mirror_volume /etc/gshadow ro)")
+  fi
+  if [ -f "/etc/passwd" ]; then
+    DOCKER_OPTIONS+=(-v "$(mirror_volume /etc/passwd ro)")
+  fi
+  if [ -f "/etc/shadow" ]; then
+    DOCKER_OPTIONS+=(-v "$(mirror_volume /etc/shadow ro)")
+  fi
 
   # Append supplementary groups to DOCKER_OPTIONS
   for val in $(id -G); do
