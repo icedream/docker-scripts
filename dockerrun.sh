@@ -57,6 +57,17 @@ if [ "$OS" = "Linux" ]; then
   for val in $(id -G); do
     DOCKER_OPTIONS+=(--group-add "${val}")
   done
+else
+  DOCKER_OPTIONS+=(
+    # Fix user to root and cover for normal case where HOME=/root, just in case
+    # the HOME variable gets rewritten
+    -u "0:0"
+    -v "$("${SCRIPT_DIR}/readlink.sh" -f "$HOME"):/root"
+
+    # Attempt on fixing HOME to host path
+    -e HOME
+    -v "$(mirror_volume "${HOME}")"
+  )
 fi
 
 # Pass through current working directory.
