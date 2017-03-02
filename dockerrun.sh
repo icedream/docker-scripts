@@ -76,8 +76,8 @@ if [ -z "${SSH_AUTH_SOCK}" ] || [ ! -e "${SSH_AUTH_SOCK}" ]; then
   eval "$(ssh-agent -s)"
 fi
 DOCKER_OPTIONS+=(
-  -e "SSH_AUTH_SOCK=/ssh-agent"
-  -v "${SSH_AUTH_SOCK}:/ssh-agent"
+  -e SSH_AUTH_SOCK
+  -v "$("${SCRIPT_DIR}/readlink.sh" -f "${SSH_AUTH_SOCK}"):${SSH_AUTH_SOCK}"
 )
 
 # Only allocate tty if we detect one
