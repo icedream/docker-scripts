@@ -68,10 +68,10 @@ fi
 if [ -z "${SSH_AUTH_SOCK}" ] || [ ! -e "${SSH_AUTH_SOCK}" ]; then
   eval "$(ssh-agent -s)"
 fi
-DOCKER_OPTIONS+=(
-  -e "SSH_AUTH_SOCK=/ssh-agent"
-  -v "${SSH_AUTH_SOCK}:/ssh-agent"
-)
+DOCKER_OPTIONS+=(-e "SSH_AUTH_SOCK=/ssh-agent")
+if [ -e "${SSH_AUTH_SOCK}" ]; then
+  DOCKER_OPTIONS+=(-v "${SSH_AUTH_SOCK}:/ssh-agent")
+fi
 
 # Only allocate tty if we detect one
 if [ -t 1 ]; then
