@@ -27,14 +27,22 @@ IMAGE="$1"
 shift 1
 
 # Mirror user and group
-DOCKER_OPTIONS+=(
-  -u "${UID}:$(id -g)"
-  -v "$(mirror_volume "${HOME}")"
-  -v "$(mirror_volume /etc/group ro)"
-  -v "$(mirror_volume /etc/gshadow ro)"
-  -v "$(mirror_volume /etc/passwd ro)"
-  -v "$(mirror_volume /etc/shadow ro)"
-)
+DOCKER_OPTIONS+=(-u "${UID}:$(id -g)")
+if [ -e "${HOME}" ]; then
+  DOCKER_OPTIONS+=(-v "$(mirror_volume "${HOME}")")
+fi
+if [ -e "/etc/group" ]; then
+  DOCKER_OPTIONS+=(-v "$(mirror_volume /etc/group ro)")
+fi
+if [ -e "/etc/gshadow" ]; then
+  DOCKER_OPTIONS+=(-v "$(mirror_volume /etc/gshadow ro)")
+fi
+if [ -e "/etc/passwd" ]; then
+  DOCKER_OPTIONS+=(-v "$(mirror_volume /etc/passwd ro)")
+fi
+if [ -e "/etc/shadow" ]; then
+  DOCKER_OPTIONS+=(-v "$(mirror_volume /etc/shadow ro)")
+fi
 
 # Pass through current working directory.
 # @TODO - Find a more consistent solution if possible.
