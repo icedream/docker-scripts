@@ -40,16 +40,19 @@ if [ "$OS" = "Linux" ] || [ -n "${FORCE_USER_PERMS}" ]; then
     -u "${UID}:$(id -g)"
     -v "$(mirror_volume "${HOME}")"
   )
-  if [ -f "/etc/group" ]; then
+  if [ -e "${HOME}" ]; then
+    DOCKER_OPTIONS+=(-v "$(mirror_volume "${HOME}")")
+  fi
+  if [ -e "/etc/group" ]; then
     DOCKER_OPTIONS+=(-v "$(mirror_volume /etc/group ro)")
   fi
-  if [ -f "/etc/gshadow" ]; then
+  if [ -e "/etc/gshadow" ]; then
     DOCKER_OPTIONS+=(-v "$(mirror_volume /etc/gshadow ro)")
   fi
-  if [ -f "/etc/passwd" ]; then
+  if [ -e "/etc/passwd" ]; then
     DOCKER_OPTIONS+=(-v "$(mirror_volume /etc/passwd ro)")
   fi
-  if [ -f "/etc/shadow" ]; then
+  if [ -e "/etc/shadow" ]; then
     DOCKER_OPTIONS+=(-v "$(mirror_volume /etc/shadow ro)")
   fi
 
@@ -59,15 +62,20 @@ if [ "$OS" = "Linux" ] || [ -n "${FORCE_USER_PERMS}" ]; then
   done
 else
   DOCKER_OPTIONS+=(
-    # Fix user to root and cover for normal case where HOME=/root, just in case
-    # the HOME variable gets rewritten
+    # Fix user to root
     -u "0:0"
-    -v "$("${SCRIPT_DIR}/readlink.sh" -f "$HOME"):/root"
-
-    # Attempt on fixing HOME to host path
-    -e HOME
-    -v "$(mirror_volume "${HOME}")"
   )
+  if [ -e "${HOME}" ]; then
+    DOCKER_OPTIONS+=(
+      # Attempt on fixing HOME to host path
+      -e HOME
+      -v "$(mirror_volume "${HOME}")"
+
+      # Cover for HOME=/root just in case it gets overridden inside
+      # the container
+      -v "$("${SCRIPT_DIR}/readlink.sh" -f "$HOME"):/root"
+    )
+  fi
 fi
 
 # Pass through current working directory.
@@ -95,10 +103,10 @@ if [ -z "${SSH_AUTH_SOCK}" ] || [ ! -e "${SSH_AUTH_SOCK}" ]; then
   eval "$(ssh-agent -s)"
   trap 'eval "$(ssh-agent -k)"' EXIT
 fi
-DOCKER_OPTIONS+=(
-  -e SSH_AUTH_SOCK
-  -v "$("${SCRIPT_DIR}/readlink.sh" -f "${SSH_AUTH_SOCK}"):${SSH_AUTH_SOCK}"
-)
+DOCKER_OPTIONS+=(-e "SSH_AUTH_SOCK=/ssh-agent")
+if [ -e "${SSH_AUTH_SOCK}" ]; then
+  DOCKER_OPTIONS+=(-v "${SSH_AUTH_SOCK}:/ssh-agent")
+fi
 
 # Only allocate tty if we detect one
 if [ -t 1 ]; then
